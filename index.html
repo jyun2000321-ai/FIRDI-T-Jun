@@ -1,448 +1,448 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant-TW" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>加工溫度履歷 - 階層化儀表板</title>
-    <style>
-        :root {
-            --primary: #2c3e50;
-            --stage-a: #e67e22;
-            --stage-b: #2ecc71;
-            --stage-c: #9b59b6;
-            --fail: #e74c3c;
-            --pass: #27ae60;
-            --bg: #f8f9fa;
-        }
-
-        body {
-            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
-            background-color: var(--bg);
-            margin: 0;
-            padding: 20px;
-            color: #333;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        h1 {
-            text-align: center;
-            color: var(--primary);
-            margin-bottom: 30px;
-        }
-
-        .flowchart-section {
-            text-align: center;
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            margin-bottom: 30px;
-        }
-
-        .flowchart-section img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        .stage-card {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            border-top: 8px solid #ccc;
-            text-align: center;
-        }
-
-        .stage-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-        }
-
-        .stage-card.active {
-            box-shadow: 0 0 0 3px var(--primary);
-        }
-
-        .card-a { border-top-color: var(--stage-a); }
-        .card-b { border-top-color: var(--stage-b); }
-        .card-c { border-top-color: var(--stage-c); }
-
-        .card-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-
-        .stats {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 10px;
-        }
-
-        .stat-item .label { font-size: 0.9rem; color: #666; }
-        .stat-item .value { font-size: 1.2rem; font-weight: bold; display: block; }
-        .val-pass { color: var(--pass); }
-        .val-fail { color: var(--fail); }
-
-        .detail-section {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            display: none; /* Hidden by default */
-        }
-
-        .detail-section.visible { display: block; }
-
-        .detail-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .filter-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .filter-controls input {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 0.9rem;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-
-        th { background: #f4f4f4; color: #555; }
-
-        .alert-icon {
-            font-size: 1.2rem;
-            margin-right: 5px;
-        }
-
-        .status-badge {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: bold;
-        }
-
-        .status-pass { background: #eafaf1; color: var(--pass); }
-        .status-fail { background: #fdeaea; color: var(--fail); }
-
-        .temp-warning {
-            color: var(--fail);
-            font-weight: bold;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>包裝食品營養標示自動試算與合規檢驗儀表板</title>
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Remix Icons for Premium UI Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 </head>
 <body>
 
-<div class="container">
-    <h1>加工溫度履歷一頁看 (進階版)</h1>
-
-    <div class="summary-grid">
-        <div class="stage-card card-a" onclick="showDetail('A')">
-            <div class="card-title">製程段 A</div>
-            <div class="stats">
-                <div class="stat-item"><span class="label">總筆數</span><span class="value" id="count-a">0</span></div>
-                <div class="stat-item"><span class="label">不合規</span><span class="value val-fail" id="fail-a">0</span></div>
-            </div>
-            <p style="color: #888; margin-top: 15px;">點擊查看詳情</p>
-        </div>
-        <div class="stage-card card-b" onclick="showDetail('B')">
-            <div class="card-title">製程段 B</div>
-            <div class="stats">
-                <div class="stat-item"><span class="label">總筆數</span><span class="value" id="count-b">0</span></div>
-                <div class="stat-item"><span class="label">不合規</span><span class="value val-fail" id="fail-b">0</span></div>
-            </div>
-            <p style="color: #888; margin-top: 15px;">點擊查看詳情</p>
-        </div>
-        <div class="stage-card card-c" onclick="showDetail('C')">
-            <div class="card-title">製程段 C</div>
-            <div class="stats">
-                <div class="stat-item"><span class="label">總筆數</span><span class="value" id="count-c">0</span></div>
-                <div class="stat-item"><span class="label">不合規</span><span class="value val-fail" id="fail-c">0</span></div>
-            </div>
-            <p style="color: #888; margin-top: 15px;">點擊查看詳情</p>
-        </div>
+  <!-- App Header -->
+  <header>
+    <div class="header-logo">
+      <i class="ri-heart-pulse-fill"></i>
+      <div>
+        <h1>營養標示自動試算儀表板</h1>
+        <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">符合中華民國衛福部包裝食品規範</p>
+      </div>
+      <span>v2.0 Beta</span>
     </div>
 
-    <div id="detailContainer" class="detail-section">
-        <div class="detail-header">
-            <h2 id="detailTitle">詳細數據 - 製程段</h2>
-            <div class="filter-controls">
-                <input type="text" id="batchSearch" placeholder="搜尋批號..." oninput="filterCurrentStage()">
-                <input type="date" id="dateFilter" onchange="filterCurrentStage()">
-                <button onclick="hideDetail()" style="padding: 8px 15px; cursor: pointer;">返回分類</button>
-            </div>
-        </div>
-        <table id="detailTable">
-            <thead>
-                <tr>
-                    <th>日期</th>
-                    <th>批號</th>
-                    <th>時間段</th>
-                    <th>溫度 (°C)</th>
-                    <th>合規判定</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+    <!-- Navigation Tabs -->
+    <div style="display: flex; gap: 0.5rem; background: var(--primary-light); padding: 0.25rem; border-radius: 8px; border: 1px solid var(--border-color);">
+      <button class="btn btn-secondary btn-sm active" id="tabCalcBtn" style="border: none; background: var(--bg-card); color: var(--primary); font-weight: 600;">
+        <i class="ri-calculator-line"></i> 試算儀表板
+      </button>
+      <button class="btn btn-secondary btn-sm" id="tabPlaygroundBtn" style="border: none; background: transparent; color: var(--text-secondary);">
+        <i class="ri-play-circle-line"></i> 流程圖 Playground
+      </button>
     </div>
-</div>
+    
+    <div class="header-actions">
+      <button class="btn btn-secondary btn-sm" id="btnOpenCustomModal">
+        <i class="ri-add-circle-line"></i> 新增自訂原料
+      </button>
+      <button class="btn-icon" id="themeToggle" title="切換主題">
+        <i class="ri-moon-line"></i>
+      </button>
+    </div>
+  </header>
 
-<script>
-    const csvData = `日期,批號,製程段,溫度,時段
-,B1059,A,5.6,18:00-20:00
-,B1100,C,3.6,08:00-10:00
-2026-01-01,B1000,B,6.0,08:00-10:00
-2026-01-01,B1084,B,5.6,14:00-16:00
-2026-01-06,B1005,B,4.8,14:00-16:00
-2026-01-08,UNKNOWN,A,7.6,10:00-12:00
-2026-01-09,B1036,A,4.1,14:00-16:00
-2026-01-13,B1096,B,6.0,14:00-16:00
-2026-01-17,B1072,C,3.4,10:00-12:00
-2026-01-21,B1048,A,7.3,10:00-12:00
-2026-01-22,B1077,B,4.2,18:00-20:00
-2026-01-25,B1024,B,3.0,14:00-16:00
-2026-01-25,B1108,B,7.1,10:00-12:00
-2026-02-03,B1030,A,7.2,10:00-12:00
-2026-02-03,B1114,C,3.2,14:00-16:00
-2026-02-05,B1060,B,3.6,14:00-16:00
-2026-02-06,B1061,B,6.8,18:00-20:00
-2026-02-07,B1006,B,4.9,14:00-16:00
-2026-02-13,B1012,C,,10:00-12:00
-2026-02-14,B1013,B,4.0,14:00-16:00
-2026-02-15,B1042,B,5.8,10:00-12:00
-2026-02-19,B1102,A,5.8,10:00-12:00
-2026-02-22,B1049,A,2.2,14:00-16:00
-2026-02-26,B1025,A,6.6,14:00-16:00
-2026-02-26,B1109,A,2.2,10:00-12:00
-2026-03-02,B1001,B,3.5,14:00-16:00
-2026-03-02,B1085,B,5.4,14:00-16:00
-2026-03-03,B1002,A,6.1,10:00-12:00
-2026-03-03,B1086,A,6.4,08:00-10:00
-2026-03-07,B1062,A,7.4,14:00-16:00
-2026-03-10,B1037,C,7.6,10:00-12:00
-2026-03-11,B1038,A,5.1,14:00-16:00
-2026-03-14,B1097,A,3.5,08:00-10:00
-2026-03-15,B1098,B,5.0,14:00-16:00
-2026-03-16,B1043,A,5.2,14:00-16:00
-2026-03-18,B1073,C,5.8,14:00-16:00
-2026-03-27,B1026,A,6.2,14:00-16:00
-2026-03-27,B1110,B,5.6,10:00-12:00
-2026-04-01,B1056,A,6.4,14:00-16:00
-2026-04-04,B1003,C,2.6,10:00-12:00
-2026-04-04,B1087,C,5.8,18:00-20:00
-2026-04-05,B1116,B,6.3,14:00-16:00
-2026-04-09,B1092,B,6.9,10:00-12:00
-2026-04-12,UNKNOWN,C,3.6,14:00-16:00
-2026-04-15,B1014,A,6.0,10:00-12:00
-2026-04-16,B1015,A,6.7,14:00-16:00
-2026-04-16,B1099,A,6.9,14:00-16:00
-2026-04-19,B1074,C,5.1,10:00-12:00
-2026-04-20,B1075,A,3.3,08:00-10:00
-2026-04-21,B1020,A,2.2,14:00-16:00
-2026-04-23,B1050,C,7.6,08:00-10:00
-2026-04-24,B1051,C,4.7,14:00-16:00
-2026-04-28,B1027,A,2.9,10:00-12:00
-2026-04-28,B1111,C,4.0,10:00-12:00
-2026-05-01,B1028,A,4.1,10:00-12:00
-2026-05-02,B1057,A,3.6,14:00-16:00
-2026-05-05,B1004,B,2.7,18:00-20:00
-2026-05-05,B1088,B,4.9,18:00-20:00
-2026-05-08,B1063,C,2.3,14:00-16:00
-2026-05-13,B1040,B,5.3,14:00-16:00
-2026-05-17,B1016,B,6.0,08:00-10:00
-2026-05-21,B1076,C,6.1,18:00-20:00
-2026-05-25,B1052,B,2.7,10:00-12:00
-2026-06-01,B1112,A,6.8,10:00-12:00
-2026-06-02,B1029,A,2.7,14:00-16:00
-2026-06-02,B1113,C,2.6,18:00-20:00
-2026-06-06,B1089,A,2.7,08:00-10:00
-2026-06-07,B1118,B,3.7,14:00-16:00
-2026-06-09,B1064,B,5.5,08:00-10:00
-2026-06-10,B1065,A,6.4,08:00-10:00
-2026-06-11,B1094,B,2.3,08:00-10:00
-2026-06-14,B1041,A,3.3,14:00-16:00
-2026-06-18,B1017,C,4.2,14:00-16:00
-2026-06-18,B1101,A,6.5,14:00-16:00
-2026-06-26,B1053,B,6.3,10:00-12:00
-2026-06-27,B1082,B,7.9,14:00-16:00
-2026-07-07,B1090,C,8.0,14:00-16:00
-2026-07-11,B1066,A,3.7,18:00-20:00
-2026-07-19,B1018,B,4.2,10:00-12:00
-2026-07-23,B1078,B,3.2,14:00-16:00
-2026-07-27,B1054,C,3.9,10:00-12:00
-2026-08-04,B1031,C,3.4,14:00-16:00
-2026-08-04,B1115,A,5.6,10:00-12:00
-2026-08-08,B1007,C,7.4,14:00-16:00
-2026-08-08,B1091,C,2.9,10:00-12:00
-2026-08-12,B1067,A,4.8,18:00-20:00
-2026-08-20,B1019,B,4.1,18:00-20:00
-2026-08-20,B1103,A,7.3,10:00-12:00
-2026-08-24,B1079,C,5.7,14:00-16:00
-2026-08-28,B1055,B,4.4,08:00-10:00
-2026-09-05,B1032,B,2.9,14:00-16:00
-2026-09-09,B1008,B,2.1,18:00-20:00
-2026-09-13,B1068,C,6.8,14:00-16:00
-2026-09-17,B1044,A,3.0,14:00-16:00
-2026-09-21,B1104,C,4.4,14:00-16:00
-2026-09-25,B1080,A,7.2,10:00-12:00
-2026-10-06,B1033,B,6.2,14:00-16:00
-2026-10-06,B1117,B,7.0,18:00-20:00
-2026-10-10,B1009,B,4.5,14:00-16:00
-2026-10-10,B1093,C,7.5,08:00-10:00
-2026-10-14,B1069,A,5.7,18:00-20:00
-2026-10-18,B1045,B,5.0,18:00-20:00
-2026-10-22,B1021,C,4.5,08:00-10:00
-2026-10-22,B1105,B,3.2,18:00-20:00
-2026-10-26,B1081,B,5.5,14:00-16:00
-2026-11-03,B1058,A,5.4,14:00-16:00
-2026-11-07,B1034,A,5.9,08:00-10:00
-2026-11-11,B1010,B,6.0,14:00-16:00
-2026-11-15,B1070,B,2.3,14:00-16:00
-2026-11-19,B1046,C,7.3,18:00-20:00
-2026-11-23,B1022,B,4.7,18:00-20:00
-2026-11-23,B1106,B,5.9,14:00-16:00
-2026-12-08,B1119,A,6.3,18:00-20:00
-2026-12-12,B1011,A,2.4,14:00-16:00
-2026-12-12,B1095,A,4.4,18:00-20:00
-2026-12-16,B1071,A,5.2,14:00-16:00
-2026-12-20,B1047,C,3.0,14:00-16:00
-2026-12-24,B1023,A,6.5,14:00-16:00
-2026-12-24,B1107,B,4.3,08:00-10:00
-2026-12-28,B1083,C,6.8,10:00-12:00`;
-
-    const dataByStage = { A: [], B: [], C: [] };
-    const stats = { A: { total: 0, fail: 0 }, B: { total: 0, fail: 0 }, C: { total: 0, fail: 0 } };
-    let currentStage = '';
-
-    function initData() {
-        const lines = csvData.split('\n');
-        const headers = lines[0].split(',');
-        for (let i = 1; i < lines.length; i++) {
-            const parts = lines[i].split(',');
-            if (parts.length < 5) continue;
-            const row = {
-                date: parts[0],
-                batch: parts[1],
-                stage: parts[2],
-                temp: parseFloat(parts[3]),
-                time: parts[4]
-            };
-            
-            // Compliance check (2.0 - 7.0)
-            row.isPass = !isNaN(row.temp) && row.temp >= 2.0 && row.temp <= 7.0;
-            
-            if (dataByStage[row.stage]) {
-                dataByStage[row.stage].push(row);
-                stats[row.stage].total++;
-                if (!row.isPass) stats[row.stage].fail++;
-            }
-        }
-
-        // Update Summary Cards
-        ['A', 'B', 'C'].forEach(s => {
-            document.getElementById(`count-${s.toLowerCase()}`).innerText = stats[s].total;
-            document.getElementById(`fail-${s.toLowerCase()}`).innerText = stats[s].fail;
-        });
-    }
-
-    function showDetail(stage) {
-        currentStage = stage;
-        // Reset filters
-        document.getElementById('batchSearch').value = '';
-        document.getElementById('dateFilter').value = '';
-
-        // Toggle UI
-        document.querySelector('.summary-grid').style.display = 'none';
-        const container = document.getElementById('detailContainer');
-        container.classList.add('visible');
-        document.getElementById('detailTitle').innerText = `詳細數據 - 製程段 ${stage}`;
-
-        renderDetailTable(dataByStage[stage]);
-
-        // Scroll to detail
-        container.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function filterCurrentStage() {
-        const searchValue = document.getElementById('batchSearch').value.toLowerCase();
-        const dateValue = document.getElementById('dateFilter').value;
+  <!-- Main View Container with Tabs -->
+  <div id="calculatorView" class="dashboard-container">
+    
+    <!-- Left Column: Input Form & Recipe Manager -->
+    <aside class="main-panel" style="gap: 1.25rem;">
+      
+      <!-- Input Recipe Ingredients Card -->
+      <div class="card">
+        <div class="card-title">
+          <i class="ri-file-list-3-line"></i>
+          <span>第一步：輸入配方原料</span>
+        </div>
         
-        const filteredData = dataByStage[currentStage].filter(row => {
-            const matchesBatch = row.batch.toLowerCase().includes(searchValue);
-            const matchesDate = !dateValue || row.date === dateValue;
-            return matchesBatch && matchesDate;
-        });
+        <div class="form-group autocomplete-container">
+          <label class="form-label" for="ingSearch">搜尋食品營養庫原料名稱</label>
+          <input type="text" class="form-control" id="ingSearch" placeholder="例如：低筋麵粉、砂糖、雞蛋..." autocomplete="off">
+          <!-- Autocomplete Dropdown -->
+          <ul class="autocomplete-dropdown" id="autocompleteDropdown"></ul>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="ingWeight">配方克數 (g)</label>
+            <input type="number" class="form-control" id="ingWeight" placeholder="例如：250" min="0.1" step="any">
+          </div>
+          <div class="form-group" style="justify-content: flex-end;">
+            <button class="btn btn-primary" id="btnAddIngredient" style="width: 100%;">
+              <i class="ri-add-line"></i> 加入配方
+            </button>
+          </div>
+        </div>
+        
+        <div style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 0.75rem;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600;">
+            <span>目前原料清單</span>
+            <span style="color: var(--primary);">原料總重: <span id="totalRawWeightSpan">0.0 g</span></span>
+          </div>
+          
+          <!-- Ingredient List Scroll Area -->
+          <div class="ingredient-list" id="ingredientList">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </div>
 
-        renderDetailTable(filteredData);
-    }
+      <!-- Cooked Weight Loss & Servings Settings Card -->
+      <div class="card">
+        <div class="card-title">
+          <i class="ri-settings-4-line"></i>
+          <span>第二步：烘焙設定與包裝份量</span>
+        </div>
+        
+        <div class="settings-section">
+          <div class="form-group">
+            <label class="form-label" for="cookedWeight">成品總重量 (g) <i class="ri-question-line" title="烹調烘焙後的實際重量，會自動換算水份蒸發流失"></i></label>
+            <input type="number" class="form-control" id="cookedWeight" placeholder="自動代入原料總重" min="0.1" step="any">
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="servingSize">每一份量 (g)</label>
+              <input type="number" class="form-control" id="servingSize" value="50" min="0.1" step="any">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="servings">本包裝含 (份)</label>
+              <input type="number" class="form-control" id="servings" value="10" min="0.1" step="any">
+            </div>
+          </div>
+        </div>
 
-    function renderDetailTable(data) {
-        const tbody = document.querySelector('#detailTable tbody');
-        tbody.innerHTML = '';
+        <button class="btn btn-success" id="btnFinishRecipe" disabled style="font-weight: 600; padding: 0.875rem;">
+          <i class="ri-check-double-line"></i> 結束配方輸入並開始試算
+        </button>
+      </div>
+      
+    </aside>
 
-        data.forEach(row => {
-            const tr = document.createElement('tr');
-            const statusHtml = row.isPass 
-                ? `<span class="status-badge status-pass">✅ 合規</span>`
-                : `<span class="status-badge status-fail"><span class="alert-icon">⚠️</span>不合規</span>`;
+    <!-- Right Column: Interactive Dashboard Outputs & Auditor -->
+    <main class="main-panel">
+      
+      <!-- Current State Indicator -->
+      <div class="step-indicator">
+        <div class="step-item active" id="stepEdit">
+          <div class="step-badge">1</div>
+          <span>原料輸入中</span>
+        </div>
+        <div class="step-item" id="stepCalc">
+          <div class="step-badge">2</div>
+          <span>合規檢查與標籤輸出</span>
+        </div>
+      </div>
+
+      <!-- PANEL 1: Initial/Editing State Welcome Screen -->
+      <div id="editPanel" class="card" style="text-align: center; padding: 4rem 2rem; display: flex; align-items: center; justify-content: center; min-height: 400px;">
+        <div style="max-width: 450px;">
+          <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--primary-light); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+            <i class="ri-calculator-line" style="font-size: 2.5rem; color: var(--primary);"></i>
+          </div>
+          <h2 style="margin-bottom: 0.75rem; font-weight: 700;">營養標示試算準備就緒</h2>
+          <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">
+            請於左側搜尋「台灣食品營養資料庫」的預設食品原料，並輸入您的配方克數。設定完成品重量與包裝份量後，按下「結束配方輸入」按鈕，系統將自動進行稽核與生成標準標籤。
+          </p>
+        </div>
+      </div>
+
+      <!-- PANEL 2: Calculated Outputs & Label Compliance Preview (Hidden until finished button click) -->
+      <div id="outputPanel" class="output-grid" style="display: none;">
+        
+        <!-- Left Side of Outputs: Draft Details, Compliance Results & Pie Chart -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+          
+          <!-- Compliance Status Box -->
+          <div class="compliance-auditor">
+            <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+              <i class="ri-shield-check-line" style="color: var(--primary);"></i> 台灣衛福部標示法規指引稽核結果
+            </h3>
+            <div id="complianceContainer">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Calculated Draft Values -->
+          <div class="card">
+            <div class="card-title">
+              <i class="ri-draft-line"></i>
+              <span>營養成分加總草稿 (未修約修整前)</span>
+            </div>
+            <div class="table-responsive">
+              <table class="draft-table">
+                <thead>
+                  <tr>
+                    <th>成分項目</th>
+                    <th>配方總含量</th>
+                    <th>每 100g 熟重含量</th>
+                  </tr>
+                </thead>
+                <tbody id="draftTableBody">
+                  <!-- Populated via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Pie Chart Visualization -->
+          <div class="card">
+            <div class="card-title">
+              <i class="ri-pie-chart-2-line"></i>
+              <span>三大營養素熱量貢獻佔比 (每份為基準)</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="nutritionChart" width="350" height="200"></canvas>
+            </div>
+          </div>
+          
+        </div>
+
+        <!-- Right Side of Outputs: Official Sticker & Export Panel -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+          
+          <!-- Sticker Label Preview Card -->
+          <div class="card" style="align-items: center;">
+            <div class="card-title" style="width: 100%;">
+              <i class="ri-file-shield-2-line"></i>
+              <span>中華民國標準規格預覽</span>
+            </div>
             
-            const tempDisplay = row.isPass 
-                ? `<span>${row.temp || 'N/A'}</span>`
-                : `<span class="temp-warning">${row.temp || 'N/A'}</span>`;
+            <div class="taiwan-nutrition-label-container" style="margin-top: 0.5rem;">
+              <div id="finalLabelContainer">
+                <!-- Rendered Sticker Table via JS -->
+              </div>
+            </div>
 
-            tr.innerHTML = `
-                <td>${row.date || '-'}</td>
-                <td><strong>${row.batch}</strong></td>
-                <td>${row.time}</td>
-                <td>${tempDisplay}</td>
-                <td>${statusHtml}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
+            <div style="width: 100%; border-top: 1px solid var(--border-color); padding-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem;">
+              <button class="btn btn-primary" id="btnExportPng" style="width: 100%;">
+                <i class="ri-image-line"></i> 匯出為標籤 PNG 貼紙
+              </button>
+              <button class="btn btn-secondary" id="btnCopyHtml" style="width: 100%;">
+                <i class="ri-code-s-slash-line"></i> 複製貼紙 HTML 碼
+              </button>
+              <button class="btn btn-secondary btn-danger" id="btnBackToEdit" style="width: 100%;">
+                <i class="ri-edit-line"></i> 返回修改配方原料
+              </button>
+            </div>
+          </div>
 
-    function hideDetail() {
-        document.getElementById('detailContainer').classList.remove('visible');
-        document.querySelector('.summary-grid').style.display = 'grid';
-    }
+        </div>
 
-    initData();
-</script>
+      </div>
 
+    </main>
+  </div>
+
+  <!-- Playground View Container (Hidden by default) -->
+  <div id="playgroundView" class="dashboard-container" style="display: none; grid-template-columns: 1fr;">
+    <div class="card" style="grid-column: 1 / -1; min-height: 500px;">
+      <div class="card-title">
+        <i class="ri-play-circle-line"></i>
+        <span>系統核心流程圖 Playground (Mermaid.js Live)</span>
+      </div>
+      <p style="font-size: 0.875rem; color: var(--text-secondary); margin-top: -0.5rem; line-height: 1.5;">
+        這是一個即時流程圖 Playground。您可以在左側修改流程圖的 Mermaid 程式碼，點擊「重新渲染」後右側就會即時顯示渲染後的圖表！
+      </p>
+      
+      <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-top: 0.5rem;" id="playgroundGrid">
+        <!-- Code Editor -->
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label class="form-label" style="font-weight: 600;">Mermaid 流程圖原始碼</label>
+            <button class="btn btn-primary btn-sm" id="btnUpdateMermaid">
+              <i class="ri-refresh-line"></i> 重新渲染圖表
+            </button>
+          </div>
+          <textarea class="form-control" id="mermaidCodeInput" rows="22" style="font-family: monospace; font-size: 0.85rem; line-height: 1.4; resize: vertical; height: 400px; background: rgba(0,0,0,0.02); color: var(--text-primary);">
+flowchart TD
+    Start([開始試算]) --> Step1[步驟一：輸入原料與重量]
+    
+    subgraph InputPhase["1. 配方輸入與參數設定"]
+        Step1 --> InputSearch{搜尋原料資料庫}
+        InputSearch -->|存在於預設庫| SelectDB[點選原料並輸入克數]
+        InputSearch -->|不存在於預設庫| AddCustom[新增自訂原料並輸入數值]
+        SelectDB --> List[加入配方清單]
+        AddCustom --> List
+        List --> Step2[步驟二：設定包裝與熟化參數]
+        Step2 --> SetCooked[輸入成品總重量]
+        Step2 --> SetServings[輸入每一份量及本包裝含份數]
+    end
+
+    SetCooked --> ClickFinish{點擊結束配方輸入}
+    
+    subgraph CalcPhase["2. 核心密度計算與損耗調整"]
+        ClickFinish --> SumRaw[加總配方各原料營養素]
+        SumRaw --> AdjLoss[計算損耗調整：每100g熟重密度]
+    end
+
+    AdjLoss --> Step3[步驟三：法規合規性稽核]
+
+    subgraph AuditPhase["3. 中華民國衛福部法規檢驗"]
+        Step3 --> Aud1{成品熟重合理？}
+        Aud1 -->|否| Warn1[警告：可能加水未申報]
+        Aud1 -->|是| Aud2{"份量 x 份數等於成品重？"}
+        
+        Aud2 -->|否| Warn2[錯誤：份量份數邏輯不符]
+        Aud2 -->|是| Aud3{"碳水是否大於等於糖 + 纖維？"}
+        
+        Aud3 -->|否| Warn3[錯誤：申報數值衝突]
+        Aud3 -->|是| AudPass[稽核通過 / 生成報告]
+    end
+
+    Warn1 --> Aud2
+    Warn2 --> Aud3
+    Warn3 --> AudPass
+
+    AudPass --> Step4[步驟四：修約與0界值處理]
+
+    subgraph RoundingPhase["4. 台灣官方修約與零值轉換"]
+        Step4 --> R_Sodium["鈉含量：四捨五入至整數，小於等於5mg標示0"]
+        Step4 --> R_Cal["熱量：小於等於4kcal標示0"]
+        Step4 --> R_Fat["反式脂肪：小於等於0.3g標示0"]
+        Step4 --> R_Sat["飽和脂肪：小於等於0.1g標示0"]
+        Step4 --> R_Other["蛋白質、脂肪、碳水、糖、纖維：四捨五入至小數一位，小於0.5g標示0"]
+    end
+
+    R_Sodium --> OutputFormat
+    R_Cal --> OutputFormat
+    R_Fat --> OutputFormat
+    R_Sat --> OutputFormat
+    R_Other --> OutputFormat
+
+    subgraph OutputPhase["5. 格式化輸出與匯出"]
+        OutputFormat["依規定順序排列表格：<br/>1.熱量 2.蛋白質 3.脂肪<br/>(含飽和與反式) 4.碳水化合物<br/>(含糖與膳食纖維) 5.鈉"] --> RenderUI[產生標準黑白雙框標籤貼紙]
+        RenderUI --> DrawChart[繪製三大營養素熱量圓餅圖]
+        RenderUI --> ExportPng[下載高解析度標籤 PNG 貼紙]
+        RenderUI --> CopyHtml["複製網頁用 HTML / CSS 程式碼"]
+    end
+
+    ExportPng --> EndNode([完成標籤製作])
+    CopyHtml --> EndNode
+          </textarea>
+        </div>
+        
+        <!-- Live Preview -->
+        <div class="card" style="background: #ffffff; color: #1e293b; border: 1px solid var(--border-color); overflow: auto; min-height: 450px; display: flex; align-items: flex-start; justify-content: center; padding: 1.5rem;">
+          <div class="mermaid" id="mermaidRenderOutput" style="width: 100%; display: flex; justify-content: center;">
+            <!-- Dynamic Mermaid diagram will render here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Custom Food Ingredient Modal -->
+  <div class="modal-overlay" id="customModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">新增自訂原料至資料庫</h3>
+        <button class="btn-icon btn-sm" id="btnCloseModal" style="border: none;">
+          <i class="ri-close-line" style="font-size: 1.25rem;"></i>
+        </button>
+      </div>
+      
+      <form id="modalForm" onsubmit="event.preventDefault();">
+        <div style="display: flex; flex-direction: column; gap: 0.875rem;">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="custName">原料名稱 (必填)</label>
+              <input type="text" class="form-control" id="custName" placeholder="例如：自製蔓越莓乾" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="custCategory">原料類別</label>
+              <select class="form-control" id="custCategory">
+                <option value="穀物類">穀物雜糧類</option>
+                <option value="油脂類">油脂堅果類</option>
+                <option value="糖類">糖與調味類</option>
+                <option value="乳品類">乳製品類</option>
+                <option value="水果類">水果與蔬菜類</option>
+                <option value="調味類">其他添加物類</option>
+              </select>
+            </div>
+          </div>
+
+          <p style="font-size: 0.75rem; color: var(--text-muted); border-bottom: 1px solid var(--border-color); padding-bottom: 0.25rem; font-weight: 600; margin-top: 0.25rem;">以下輸入每 100g 含有的營養成份</p>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="custCalories">熱量 (kcal)</label>
+              <input type="number" class="form-control" id="custCalories" min="0" step="any" value="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="custProtein">蛋白質 (g)</label>
+              <input type="number" class="form-control" id="custProtein" min="0" step="any" value="0">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="custFat">脂肪 (g)</label>
+              <input type="number" class="form-control" id="custFat" min="0" step="any" value="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="custSaturatedFat">飽和脂肪 (g)</label>
+              <input type="number" class="form-control" id="custSaturatedFat" min="0" step="any" value="0">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="custTransFat">反式脂肪 (g)</label>
+              <input type="number" class="form-control" id="custTransFat" min="0" step="any" value="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="custCarbohydrate">碳水化合物 (g)</label>
+              <input type="number" class="form-control" id="custCarbohydrate" min="0" step="any" value="0">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="custSugar">糖 (g)</label>
+              <input type="number" class="form-control" id="custSugar" min="0" step="any" value="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="custDietaryFiber">膳食纖維 (g)</label>
+              <input type="number" class="form-control" id="custDietaryFiber" min="0" step="any" value="0">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="custSodium">鈉 (mg)</label>
+            <input type="number" class="form-control" id="custSodium" min="0" step="any" value="0">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btnCloseModal">取消</button>
+          <button type="button" class="btn btn-primary" id="btnSaveCustomFood">儲存並建立原料</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <i class="ri-information-fill"></i>
+    <span>提示訊息</span>
+  </div>
+
+  <!-- JS Code -->
+  <script src="app.js"></script>
+  
+  <!-- Mermaid.js library and initialization -->
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      securityLevel: 'loose',
+      flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' }
+    });
+    window.mermaid = mermaid;
+  </script>
 </body>
 </html>
