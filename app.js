@@ -1149,7 +1149,12 @@ function switchTab(tabName) {
 async function renderMermaidLive() {
   const code = document.getElementById('mermaidCodeInput').value;
   const output = document.getElementById('mermaidRenderOutput');
-  
+
+  // 分頁隱藏（容器寬度為 0）時先不渲染，否則 dagre 會丟
+  // "Could not find a suitable point for the given distance" 錯誤。
+  // 待使用者切到 Playground 分頁、容器有寬度後才會真正渲染。
+  if (!output || output.clientWidth === 0) return;
+
   // 清空舊的 Mermaid 屬性以促使重新渲染
   output.removeAttribute('data-processed');
   output.innerHTML = code;
